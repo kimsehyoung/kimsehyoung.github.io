@@ -1,27 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
-        <title>Dongle</title>
-        <link>https://kimsehyoung.github.io/</link>
-        <description>Recent content on Dongle</description>
+        <title>Pages on Dongle</title>
+        <link>https://kimsehyoung.github.io/page/</link>
+        <description>Recent content in Pages on Dongle</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>ko-kr</language>
-        <lastBuildDate>Sat, 12 Aug 2023 10:49:43 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Sat, 12 Aug 2023 10:49:43 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/page/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>About</title>
         <link>https://kimsehyoung.github.io/page/about/</link>
         <pubDate>Sat, 12 Aug 2023 10:49:43 +0900</pubDate>
         
         <guid>https://kimsehyoung.github.io/page/about/</guid>
         <description>&lt;p&gt;꾸준히&lt;/p&gt;
-</description>
-        </item>
-        <item>
-        <title>Example</title>
-        <link>https://kimsehyoung.github.io/post/example/</link>
-        <pubDate>Sat, 12 Aug 2023 10:49:43 +0900</pubDate>
-        
-        <guid>https://kimsehyoung.github.io/post/example/</guid>
-        <description>&lt;img src="https://kimsehyoung.github.io/post/example/rowen-smith-5uQ3WzAF8UM-unsplash.jpg" alt="Featured image of post Example" /&gt;&lt;p&gt;하이하이&lt;/p&gt;
 </description>
         </item>
         <item>
