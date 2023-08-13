@@ -5,15 +5,411 @@
         <link>https://kimsehyoung.github.io/post/</link>
         <description>Recent content in Posts on Dongle</description>
         <generator>Hugo -- gohugo.io</generator>
-        <language>ko-kr</language>
-        <lastBuildDate>Sat, 12 Aug 2023 10:49:43 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/post/index.xml" rel="self" type="application/rss+xml" /><item>
-        <title>Example</title>
-        <link>https://kimsehyoung.github.io/post/example/</link>
-        <pubDate>Sat, 12 Aug 2023 10:49:43 +0900</pubDate>
+        <language>ko</language>
+        <lastBuildDate>Sun, 13 Aug 2023 16:30:14 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/post/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>Kubernetes 설치</title>
+        <link>https://kimsehyoung.github.io/post/kubernetes/kubeadm/</link>
+        <pubDate>Sun, 13 Aug 2023 16:30:14 +0900</pubDate>
         
-        <guid>https://kimsehyoung.github.io/post/example/</guid>
-        <description>&lt;img src="https://kimsehyoung.github.io/post/example/rowen-smith-5uQ3WzAF8UM-unsplash.jpg" alt="Featured image of post Example" /&gt;&lt;p&gt;하이하이&lt;/p&gt;
+        <guid>https://kimsehyoung.github.io/post/kubernetes/kubeadm/</guid>
+        <description>&lt;img src="https://kimsehyoung.github.io/post/kubernetes/kubeadm/kubeadm.png" alt="Featured image of post Kubernetes 설치" /&gt;&lt;hr&gt;
+&lt;h2 id=&#34;prerequisite&#34;&gt;prerequisite&lt;/h2&gt;
+&lt;h3 id=&#34;container-runtime&#34;&gt;container runtime&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Use containerd (containerd, CRI-O, docker)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-get update
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-get install -y &lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ca-certificates &lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    curl &lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    gnupg &lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    lsb-release
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo mkdir -p /etc/apt/keyrings
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;curl -fsSL &amp;lt;https://download.docker.com/linux/ubuntu/gpg&amp;gt; | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;deb [arch=&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;dpkg --print-architecture&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt; signed-by=/etc/apt/keyrings/docker.gpg] &amp;lt;https://download.docker.com/linux/ubuntu&amp;gt; \\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;  &lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;lsb_release -cs&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt; stable&amp;#34;&lt;/span&gt; | sudo tee /etc/apt/sources.list.d/docker.list &amp;gt; /dev/null
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-get update
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-get install containerd.io&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;1.6.14-1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-mark hold containerd.io
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Disabled cri plugin such as below line in config.toml after installing containerd package&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# disabled_plugins = [&amp;#34;cri&amp;#34;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# So, set the config to default&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Use SystemdCgroup and restart daemon&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;containerd config default | sudo tee /etc/containerd/config.toml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo sed -i &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;s/SystemdCgroup = false/SystemdCgroup = true/&amp;#39;&lt;/span&gt; /etc/containerd/config.toml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo systemctl restart containerd
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;network&#34;&gt;network&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;overlay&lt;/strong&gt; enables networking between nods&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;br_netfilter&lt;/strong&gt; enables networking between pods&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cat &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;lt;&amp;lt;EOF | sudo tee /etc/modules-load.d/k8s.conf
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;overlay
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;br_netfilter
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;EOF&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo modprobe overlay
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo modprobe br_netfilter
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# sysctl params required by setup, params persist across reboots&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cat &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;lt;&amp;lt;EOF | sudo tee /etc/sysctl.d/k8s.conf
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;net.bridge.bridge-nf-call-iptables  = 1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;net.bridge.bridge-nf-call-ip6tables = 1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;net.ipv4.ip_forward                 = 1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;EOF&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Apply sysctl params without reboot&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo sysctl --system
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;swap-off&#34;&gt;swap off&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;swap memory support from v 1.22&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Check swap memory&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;swapon -s&amp;#34;&lt;/span&gt; or &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;free -h&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Disable swap&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo swapoff -a
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Disable swap on startup&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo sed -i &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/ swap / s/^\\(.*\\)$/#\\1/g&amp;#39;&lt;/span&gt; /etc/fstab
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Implementation after reboot&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;crontab -l 2&amp;gt;/dev/null; echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;@reboot /sbin/swapoff -a&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; | crontab - &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; true
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;hr&gt;
+&lt;h2 id=&#34;setup-cluster&#34;&gt;setup cluster&lt;/h2&gt;
+&lt;h3 id=&#34;caution&#34;&gt;caution&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;pod&amp;rsquo;s CIDR block overlap&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;control-plane-node&#34;&gt;control-plane node&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;TBD: use public/private IP for api server address&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;pod-cidr: set according to your environment&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;e.g. Use 10.244.0.0/16 host: 192&amp;hellip;, docker: 172&amp;hellip;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Install packages needed to use the Kubernetes apt repository&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-get update
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-get install -y apt-transport-https ca-certificates curl
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Download the Google Cloud public signing key:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg &amp;lt;https://packages.cloud.google.com/apt/doc/apt-key.gpg&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Add the Kubernetes apt repository&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] &amp;lt;https://apt.kubernetes.io/&amp;gt; kubernetes-xenial main&amp;#34;&lt;/span&gt; | sudo tee /etc/apt/sources.list.d/kubernetes.list
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Install&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-get update
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;apt-cache madison kubeadm | head -20
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-get install -y kubelet&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;1.26.0-00 kubeadm&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;1.26.0-00 kubectl&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;1.26.0-00
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt-mark hold kubelet kubeadm kubectl
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Check packages&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubelet --version
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubeadm version
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubectl version --client
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Pre-pull the required control-plane images&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubeadm config images list --kubernetes-version&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;v1.26.0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo kubeadm config images pull --kubernetes-version&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;v1.26.0
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Set up the Kubernetes control plane&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo kubeadm init --apiserver-advertise-address&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;lt;private-ip&amp;gt; --apiserver-cert-extra-sans&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;lt;private-ip&amp;gt; --pod-network-cidr&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;lt;pod-cidr&amp;gt; --node-name &lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;hostname -s&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mkdir -p $HOME/.kube
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo chown &lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;id -u&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;:&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;id -g&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt; $HOME/.kube/config
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubectl get nodes
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubectl get namespaces
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubectl get pods -n kube-system
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;network-plugins&#34;&gt;network plugins&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Use calico cni&lt;/li&gt;
+&lt;li&gt;flannel: &amp;lsquo;10.244.0.0/16&amp;rsquo;, calico: &amp;lsquo;192.168.0.0/16&amp;rsquo; …&lt;/li&gt;
+&lt;li&gt;To avoid overlapping, modify cidr to &amp;lsquo;10.244.0.0/16&amp;rsquo;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;curl &amp;lt;https://raw.githubusercontent.com/projectcalico/calico/v3.24.5/manifests/calico.yaml&amp;gt; -O
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Edit &amp;#39;CALICO_IPV4POOL_CIDR&amp;#39; in calico.yml, if CIDR block is changed from default for avoiding overlap.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubectl apply -f calico.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubectl describe node | egrep &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;^Name|PodCIDR&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;hr&gt;
+&lt;h2 id=&#34;helm&#34;&gt;helm&lt;/h2&gt;
+&lt;h3 id=&#34;install&#34;&gt;install&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;curl -fsSL -o get_helm.sh &amp;lt;https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;chmod &lt;span style=&#34;color:#ae81ff&#34;&gt;700&lt;/span&gt; get_helm.sh
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./get_helm.sh
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;helm version
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;reference&#34;&gt;reference&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Read references while following below guide step by step&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;set-up
+&lt;a class=&#34;link&#34; href=&#34;https://kubernetes.io/docs/setup/production-environment/container-runtimes/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://kubernetes.io/docs/setup/production-environment/container-runtimes/&lt;/a&gt;&lt;!-- raw HTML omitted --&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;runtime
+&lt;a class=&#34;link&#34; href=&#34;https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/https://github.com/containerd/containerd/blob/main/docs/getting-started.md&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://kubernetes.io/ko/docs/setup/production-environment/container-runtimes/https://github.com/containerd/containerd/blob/main/docs/getting-started.md&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;network
+&lt;a class=&#34;link&#34; href=&#34;https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-networkhttps://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onprem/onpremises#install-calico-with-kubernetes-api-datastore-more-than-50-nodes&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-networkhttps://projectcalico.docs.tigera.io/getting-started/kubernetes/self-managed-onprem/onpremises#install-calico-with-kubernetes-api-datastore-more-than-50-nodes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;swap memory
+&lt;a class=&#34;link&#34; href=&#34;https://kubernetes.io/ko/docs/concepts/architecture/nodes/#swap-memory&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://kubernetes.io/ko/docs/concepts/architecture/nodes/#swap-memory&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;port
+&lt;a class=&#34;link&#34; href=&#34;https://kubernetes.io/docs/reference/networking/ports-and-protocols/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://kubernetes.io/docs/reference/networking/ports-and-protocols/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;helm
+&lt;a class=&#34;link&#34; href=&#34;https://helm.sh/docs/intro/install/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://helm.sh/docs/intro/install/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 </description>
+        </item>
+        <item>
+        <title>Git Workflow</title>
+        <link>https://kimsehyoung.github.io/post/git/workflow/</link>
+        <pubDate>Sun, 13 Aug 2023 10:15:29 +0900</pubDate>
+        
+        <guid>https://kimsehyoung.github.io/post/git/workflow/</guid>
+        <description>&lt;img src="https://kimsehyoung.github.io/post/git/workflow/git_workflow.jpg" alt="Featured image of post Git Workflow" /&gt;&lt;h2 id=&#34;trunk-based&#34;&gt;Trunk based&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;브랜치 관리가 간단하고, CI/CD 와 함께 신속, 지속적인 개발과 배포에 용이&lt;/li&gt;
+&lt;li&gt;코드베이스가 항상 배포 가능한 상태를 유지하므로, 긴급 수정이나 기능 추가가 빠르게 이루어짐.&lt;/li&gt;
+&lt;li&gt;모든 개발자가 단일 브랜치에서 작업하기 때문에, 코드 품질과 안정성 관리에 주의가 필요함.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Branch&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;main&lt;/li&gt;
+&lt;li&gt;short-term&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;git-flow&#34;&gt;Git flow&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;2010&lt;/li&gt;
+&lt;li&gt;프로젝트의 안전성과 관리를 높이는데 초점을 맞춤.&lt;/li&gt;
+&lt;li&gt;브랜치 관리가 복잡하고, 신속한 배포가 어려움.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Branch&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;main&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;항상 production에 배포 가능한 안정적인 코드를 유지하며, 모든 작업의 기준 브랜치 (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;develop&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;개발자가 feature 브랜치를 merge (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;feature&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;기능 개발을 위한 브랜치로, 개발이 완료되면 develop 브랜치로 merge&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;release&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;배포 준비를 위해 QA(Intergration Test) 및 bug fix 후 main, develop로 merge&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;hotfix&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;긴급한 버그 수정을 위한 브랜치로, main에서 분기하여 수정 후 main, develop으로 merge&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/git/workflow/git-flow.png&#34;
+	width=&#34;671&#34;
+	height=&#34;288&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/git/workflow/git-flow_hu5ba9d37bf9c4e7a0a0386bb43d906b12_26965_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/git/workflow/git-flow_hu5ba9d37bf9c4e7a0a0386bb43d906b12_26965_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;git flow&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;232&#34;
+		data-flex-basis=&#34;559px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;github-flow&#34;&gt;GitHub flow&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;2011&lt;/li&gt;
+&lt;li&gt;git flow 의 복잡성을 줄이기 위해 고안됨.&lt;/li&gt;
+&lt;li&gt;빠른 개발 및 배포와 피드백&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Branch&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;main&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;production에 배포되는 안정적인 버전의 브랜치이며, 좀 더 엄격한 규칙이 필요(permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;feature&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;기능 개발을 위한 브랜치로, 개발이 완료되면 main 브랜치로 merge&lt;/li&gt;
+&lt;li&gt;브랜치명은 작업 내용을 표현할 수 있도록 명명&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/git/workflow/github-flow.png&#34;
+	width=&#34;401&#34;
+	height=&#34;179&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/git/workflow/github-flow_hua4ff7fc27af53de93917916480ec2266_12612_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/git/workflow/github-flow_hua4ff7fc27af53de93917916480ec2266_12612_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;github flow&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;224&#34;
+		data-flex-basis=&#34;537px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;gitlab-flow&#34;&gt;GitLab flow&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;2014&lt;/li&gt;
+&lt;li&gt;Git flow와 GitHub flow의 중간 정도의 혼합 방식&lt;/li&gt;
+&lt;li&gt;환경 별 브랜치 사용&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Branch&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;main&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;항상 production에 배포 가능한 안정적인 코드를 유지하며, 모든 작업의 기준 브랜치 (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;feature&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;기능 개발이 완료되면 main 브랜치로 merge&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;staging&lt;/strong&gt;(optional)
+&lt;ul&gt;
+&lt;li&gt;staging환경에서 변경 사항을 테스트 및 검증하여 문제가 없으면 production으로 병함 (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;production&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;실제 서비스에 배포되는 브랜치 (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;어떻게-적용하면-좋을까&#34;&gt;어떻게 적용하면 좋을까?&lt;/h2&gt;
+&lt;p&gt;복잡하고 큰 규모의 프로젝트, 정기 릴리스가 필요한 때 Git Flow를 적용하면 좋을 것 같다. 차량, IOT 기기와 같은 분야에서 많이 이용될 것이고, 참여했던 차량 SW 프로젝트에서 기반으로 한 것이 Git Flow이다.&lt;/p&gt;
+&lt;p&gt;빠른 변화와 피드백, 하루에도 여러 번의 배포가 이루어진다면 Trunk Based, GitHub Flow 기반의 Workflow를 사용할 수 있다.
+SaaS, Agile 방식에 적합하고, 단순하지만 그만큼 자동화 테스트, 롤백, 코드 리뷰와 같은 개발 문화 등이 이루어져야 할 것이다.&lt;/p&gt;
+&lt;p&gt;Workflow는 딱 정하는 것이 아닌 조직, 프로젝트, 여러 가지 현재 상황에 맞추어 가는 것이 필요하다.
+실제로 안정성을 위해 &amp;lsquo;feature-develop-main&amp;rsquo;, &amp;lsquo;feature-main-production&amp;rsquo;로 구성을 했다가, CI/CD에 unit test, e2e를 적용 후에 &amp;lsquo;feature-main&amp;rsquo;으로 변경을 했었다.&lt;/p&gt;
+</description>
+        </item>
+        <item>
+        <title>리눅스 명령어</title>
+        <link>https://kimsehyoung.github.io/post/linux/commands/</link>
+        <pubDate>Sat, 12 Aug 2023 23:43:26 +0900</pubDate>
+        
+        <guid>https://kimsehyoung.github.io/post/linux/commands/</guid>
+        <description>&lt;img src="https://kimsehyoung.github.io/post/linux/commands/linux_commands.jpg" alt="Featured image of post 리눅스 명령어" /&gt;&lt;h2 id=&#34;network&#34;&gt;Network&lt;/h2&gt;
+&lt;h3 id=&#34;tcpdump&#34;&gt;tcpdump&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;tcpdump&lt;/code&gt; prints out a description of the contents of packets on a network interface.
+&lt;a class=&#34;link&#34; href=&#34;https://www.tcpdump.org/manpages/tcpdump.1.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://www.tcpdump.org/manpages/tcpdump.1.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tcpdump dst 192.168.11.11 and port &lt;span style=&#34;color:#ae81ff&#34;&gt;22&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tcpdump -i eno1 host 192.168.11.11
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tcpdump host 192.168.11.11 and tcp port &lt;span style=&#34;color:#ae81ff&#34;&gt;443&lt;/span&gt; -w tcpdump.log
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tcpdump -r tcpdump.log
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;nc&#34;&gt;nc&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;nc&lt;/code&gt; scans TCP and UDP connections&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://linux.die.net/man/1/nc&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://linux.die.net/man/1/nc&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;nc -zv 192.168.123.123 443
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;gt; Connection to 192.168.123.123 &lt;span style=&#34;color:#ae81ff&#34;&gt;443&lt;/span&gt; port &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;tcp/*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; succeeded!
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;arping&#34;&gt;arping&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;arping&lt;/code&gt; sends ARP request to a neighbor host.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man8/arping.8.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man8/arping.8.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo arping 192.168.123.123
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;60&lt;/span&gt; bytes from a1:b2:c3:d4:e5:f6 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;192.168.123.123&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; ...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;etc&#34;&gt;ETC&lt;/h2&gt;
+&lt;h3 id=&#34;top&#34;&gt;top&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;top&lt;/code&gt; displays system info as well as a list of processes or threads currently managed by the Linux Kernel.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man1/top.1.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man1/top.1.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;top -p &amp;lt;pid&amp;gt; -H
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;tee&#34;&gt;tee&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;tee&lt;/code&gt; reads from standard input and writes to standard output and files.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man1/tee.1.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man1/tee.1.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt; | tee OUTFILE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cat OUTFILE | tee NEWFILE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt; | tee -a OUTFILE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt; | tee -a OUTFILE /dev/null
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Why use tee?&lt;br&gt;
+-&amp;gt; It might be thought that &lt;strong&gt;echo&lt;/strong&gt;, &lt;strong&gt;cat&lt;/strong&gt; is sufficient. But, They can’t write into &lt;strong&gt;root&lt;/strong&gt; files.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# &amp;#34;permission denied&amp;#34; occured.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; /root/test.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# It works successfully.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello&amp;#34;&lt;/span&gt; | sudo tee -a /root/test.txt
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;lsof&#34;&gt;lsof&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;lsof&lt;/code&gt; lists file information about files opened by processes.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man8/lsof.8.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man8/lsof.8.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo lsof -a -p &lt;span style=&#34;color:#ae81ff&#34;&gt;1234567&lt;/span&gt; -d cwd
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;COMMAND     PID USER  FD TYPE DEVICE SIZE/OFF   NODE NAME
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;python3 &lt;span style=&#34;color:#ae81ff&#34;&gt;1234567&lt;/span&gt; test cwd  DIR   8,2    &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;5656565&lt;/span&gt; /home/test/test-server
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;screen&#34;&gt;screen&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;screen&lt;/code&gt; multiplexes a physical terminal to each virtual terminal.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://linux.die.net/man/1/screen&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://linux.die.net/man/1/screen&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;When a long-running task on a remote machine is performed, It helps that the SSH session is terminated and the work is corrupted or lost.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Create a new session&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -S test
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Detach the session&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ctrl-a + d
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Resume a detached screen session.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -r test
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Exit with the session termination.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;exit
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;pstree&#34;&gt;pstree&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;pstree&lt;/strong&gt; displays a tree of process.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man1/pstree.1.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man1/pstree.1.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -S test
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./test-app &amp;amp;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ctrl-a + d
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;pstree -p &lt;span style=&#34;color:#ae81ff&#34;&gt;1234567&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;lsblk&#34;&gt;lsblk&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;lsblk&lt;/strong&gt; lists information about all available or the specified block devices.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man8/lsblk.8.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man8/lsblk.8.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lsblk -o name,rota,size,mountpoint
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;mount&#34;&gt;mount&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;mount&lt;/strong&gt; serves to attach the file system on some device to the specific directory.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://linux.die.net/man/8/mount&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://linux.die.net/man/8/mount&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mount /dev/sda /backup
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;unmount /dev/sda
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;df -h
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
         </item>
         
     </channel>

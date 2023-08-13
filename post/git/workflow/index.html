@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='Git 브랜치를 어떻게 관리할까?'>
+<title>Git Workflow</title>
+
+<link rel='canonical' href='https://kimsehyoung.github.io/post/git/workflow/'>
+
+<link rel="stylesheet" href="/scss/style.min.ff300df33b80e2ac49809c825614392ed1c7b27591d65d3c4043602cd162e25f.css"><meta property='og:title' content='Git Workflow'>
+<meta property='og:description' content='Git 브랜치를 어떻게 관리할까?'>
+<meta property='og:url' content='https://kimsehyoung.github.io/post/git/workflow/'>
+<meta property='og:site_name' content='Dongle'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Workflow' /><meta property='article:published_time' content='2023-08-13T10:15:29&#43;09:00'/><meta property='article:modified_time' content='2023-08-13T10:15:29&#43;09:00'/><meta property='og:image' content='https://kimsehyoung.github.io/post/git/workflow/git_workflow.jpg' />
+<meta name="twitter:title" content="Git Workflow">
+<meta name="twitter:description" content="Git 브랜치를 어떻게 관리할까?"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://kimsehyoung.github.io/post/git/workflow/git_workflow.jpg' />
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "light");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="메뉴 여닫기">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_huda2458f72ce188392d75c5d51cd8e24e_373_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🥕</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Dongle</a></h1>
+            <h2 class="site-description">Hello, I&#39;m Sehyoung.</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        href='https://github.com/kimsehyoung'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <title>github [#142]</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+
+</defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Dribbble-Light-Preview" transform="translate(-140.000000, -7559.000000)" fill="#000000">
+            <g id="icons" transform="translate(56.000000, 160.000000)">
+                <path d="M94,7399 C99.523,7399 104,7403.59 104,7409.253 C104,7413.782 101.138,7417.624 97.167,7418.981 C96.66,7419.082 96.48,7418.762 96.48,7418.489 C96.48,7418.151 96.492,7417.047 96.492,7415.675 C96.492,7414.719 96.172,7414.095 95.813,7413.777 C98.04,7413.523 100.38,7412.656 100.38,7408.718 C100.38,7407.598 99.992,7406.684 99.35,7405.966 C99.454,7405.707 99.797,7404.664 99.252,7403.252 C99.252,7403.252 98.414,7402.977 96.505,7404.303 C95.706,7404.076 94.85,7403.962 94,7403.958 C93.15,7403.962 92.295,7404.076 91.497,7404.303 C89.586,7402.977 88.746,7403.252 88.746,7403.252 C88.203,7404.664 88.546,7405.707 88.649,7405.966 C88.01,7406.684 87.619,7407.598 87.619,7408.718 C87.619,7412.646 89.954,7413.526 92.175,7413.785 C91.889,7414.041 91.63,7414.493 91.54,7415.156 C90.97,7415.418 89.522,7415.871 88.63,7414.304 C88.63,7414.304 88.101,7413.319 87.097,7413.247 C87.097,7413.247 86.122,7413.234 87.029,7413.87 C87.029,7413.87 87.684,7414.185 88.139,7415.37 C88.139,7415.37 88.726,7417.2 91.508,7416.58 C91.513,7417.437 91.522,7418.245 91.522,7418.489 C91.522,7418.76 91.338,7419.077 90.839,7418.982 C86.865,7417.627 84,7413.783 84,7409.253 C84,7403.59 88.478,7399 94,7399" id="github-[#142]">
+
+</path>
+            </g>
+        </g>
+    </g>
+</svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='mailto:kimsehyoung6572@gmail.com'
+                        target="_blank"
+                        title="Gmail"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 11.9556C2 8.47078 2 6.7284 2.67818 5.39739C3.27473 4.22661 4.22661 3.27473 5.39739 2.67818C6.7284 2 8.47078 2 11.9556 2H20.0444C23.5292 2 25.2716 2 26.6026 2.67818C27.7734 3.27473 28.7253 4.22661 29.3218 5.39739C30 6.7284 30 8.47078 30 11.9556V20.0444C30 23.5292 30 25.2716 29.3218 26.6026C28.7253 27.7734 27.7734 28.7253 26.6026 29.3218C25.2716 30 23.5292 30 20.0444 30H11.9556C8.47078 30 6.7284 30 5.39739 29.3218C4.22661 28.7253 3.27473 27.7734 2.67818 26.6026C2 25.2716 2 23.5292 2 20.0444V11.9556Z" fill="white"/>
+<path d="M22.0515 8.52295L16.0644 13.1954L9.94043 8.52295V8.52421L9.94783 8.53053V15.0732L15.9954 19.8466L22.0515 15.2575V8.52295Z" fill="#EA4335"/>
+<path d="M23.6231 7.38639L22.0508 8.52292V15.2575L26.9983 11.459V9.17074C26.9983 9.17074 26.3978 5.90258 23.6231 7.38639Z" fill="#FBBC05"/>
+<path d="M22.0508 15.2575V23.9924H25.8428C25.8428 23.9924 26.9219 23.8813 26.9995 22.6513V11.459L22.0508 15.2575Z" fill="#34A853"/>
+<path d="M9.94811 24.0001V15.0732L9.94043 15.0669L9.94811 24.0001Z" fill="#C5221F"/>
+<path d="M9.94014 8.52404L8.37646 7.39382C5.60179 5.91001 5 9.17692 5 9.17692V11.4651L9.94014 15.0667V8.52404Z" fill="#C5221F"/>
+<path d="M9.94043 8.52441V15.0671L9.94811 15.0734V8.53073L9.94043 8.52441Z" fill="#C5221F"/>
+<path d="M5 11.4668V22.6591C5.07646 23.8904 6.15673 24.0003 6.15673 24.0003H9.94877L9.94014 15.0671L5 11.4668Z" fill="#4285F4"/>
+</svg>
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>Home</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/page/about/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/page/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>Archives</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/page/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>Search</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/page/links/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>Links</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>Dark Mode</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        
+        <h2 class="widget-title section-title" style="font-size: 18px;">목차</h2>
+        
+        <div class="widget--toc" style="line-height: 0.6;">
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#trunk-based">Trunk based</a></li>
+    <li><a href="#git-flow">Git flow</a></li>
+    <li><a href="#github-flow">GitHub flow</a></li>
+    <li><a href="#gitlab-flow">GitLab flow</a></li>
+    <li><a href="#어떻게-적용하면-좋을까">어떻게 적용하면 좋을까?</a></li>
+  </ul>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/post/git/workflow/">
+                <img src="/post/git/workflow/git_workflow_hu3d03a01dcc18bc5be0e67db3d8d209a6_2538919_800x0_resize_q75_box.jpg"
+                        srcset="/post/git/workflow/git_workflow_hu3d03a01dcc18bc5be0e67db3d8d209a6_2538919_800x0_resize_q75_box.jpg 800w, /post/git/workflow/git_workflow_hu3d03a01dcc18bc5be0e67db3d8d209a6_2538919_1600x0_resize_q75_box.jpg 1600w"
+                        width="800" 
+                        height="530" 
+                        loading="lazy"
+                        alt="Featured image of post Git Workflow" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/git/" >
+                Git
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/post/git/workflow/">Git Workflow</a>
+        </h2>
+    
+        
+        <h3 class="article-subtitle">
+            Git 브랜치를 어떻게 관리할까?
+        </h3>
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Aug 13, 2023</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    2 분 정도
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="trunk-based">Trunk based</h2>
+<ul>
+<li>브랜치 관리가 간단하고, CI/CD 와 함께 신속, 지속적인 개발과 배포에 용이</li>
+<li>코드베이스가 항상 배포 가능한 상태를 유지하므로, 긴급 수정이나 기능 추가가 빠르게 이루어짐.</li>
+<li>모든 개발자가 단일 브랜치에서 작업하기 때문에, 코드 품질과 안정성 관리에 주의가 필요함.</li>
+</ul>
+<p><strong>Branch</strong></p>
+<ul>
+<li>main</li>
+<li>short-term</li>
+</ul>
+<h2 id="git-flow">Git flow</h2>
+<ul>
+<li>2010</li>
+<li>프로젝트의 안전성과 관리를 높이는데 초점을 맞춤.</li>
+<li>브랜치 관리가 복잡하고, 신속한 배포가 어려움.</li>
+</ul>
+<p><strong>Branch</strong></p>
+<ul>
+<li><strong>main</strong>
+<ul>
+<li>항상 production에 배포 가능한 안정적인 코드를 유지하며, 모든 작업의 기준 브랜치 (permanent)</li>
+</ul>
+</li>
+<li><strong>develop</strong>
+<ul>
+<li>개발자가 feature 브랜치를 merge (permanent)</li>
+</ul>
+</li>
+<li><strong>feature</strong>
+<ul>
+<li>기능 개발을 위한 브랜치로, 개발이 완료되면 develop 브랜치로 merge</li>
+</ul>
+</li>
+<li><strong>release</strong>
+<ul>
+<li>배포 준비를 위해 QA(Intergration Test) 및 bug fix 후 main, develop로 merge</li>
+</ul>
+</li>
+<li><strong>hotfix</strong>
+<ul>
+<li>긴급한 버그 수정을 위한 브랜치로, main에서 분기하여 수정 후 main, develop으로 merge</li>
+</ul>
+</li>
+</ul>
+<p><img src="/post/git/workflow/git-flow.png"
+	width="671"
+	height="288"
+	srcset="/post/git/workflow/git-flow_hu5ba9d37bf9c4e7a0a0386bb43d906b12_26965_480x0_resize_box_3.png 480w, /post/git/workflow/git-flow_hu5ba9d37bf9c4e7a0a0386bb43d906b12_26965_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="git flow"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="232"
+		data-flex-basis="559px"
+	
+></p>
+<hr>
+<h2 id="github-flow">GitHub flow</h2>
+<ul>
+<li>2011</li>
+<li>git flow 의 복잡성을 줄이기 위해 고안됨.</li>
+<li>빠른 개발 및 배포와 피드백</li>
+</ul>
+<p><strong>Branch</strong></p>
+<ul>
+<li><strong>main</strong>
+<ul>
+<li>production에 배포되는 안정적인 버전의 브랜치이며, 좀 더 엄격한 규칙이 필요(permanent)</li>
+</ul>
+</li>
+<li><strong>feature</strong>
+<ul>
+<li>기능 개발을 위한 브랜치로, 개발이 완료되면 main 브랜치로 merge</li>
+<li>브랜치명은 작업 내용을 표현할 수 있도록 명명</li>
+</ul>
+</li>
+</ul>
+<p><img src="/post/git/workflow/github-flow.png"
+	width="401"
+	height="179"
+	srcset="/post/git/workflow/github-flow_hua4ff7fc27af53de93917916480ec2266_12612_480x0_resize_box_3.png 480w, /post/git/workflow/github-flow_hua4ff7fc27af53de93917916480ec2266_12612_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="github flow"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="224"
+		data-flex-basis="537px"
+	
+></p>
+<hr>
+<h2 id="gitlab-flow">GitLab flow</h2>
+<ul>
+<li>2014</li>
+<li>Git flow와 GitHub flow의 중간 정도의 혼합 방식</li>
+<li>환경 별 브랜치 사용</li>
+</ul>
+<p><strong>Branch</strong></p>
+<ul>
+<li><strong>main</strong>
+<ul>
+<li>항상 production에 배포 가능한 안정적인 코드를 유지하며, 모든 작업의 기준 브랜치 (permanent)</li>
+</ul>
+</li>
+<li><strong>feature</strong>
+<ul>
+<li>기능 개발이 완료되면 main 브랜치로 merge</li>
+</ul>
+</li>
+<li><strong>staging</strong>(optional)
+<ul>
+<li>staging환경에서 변경 사항을 테스트 및 검증하여 문제가 없으면 production으로 병함 (permanent)</li>
+</ul>
+</li>
+<li><strong>production</strong>
+<ul>
+<li>실제 서비스에 배포되는 브랜치 (permanent)</li>
+</ul>
+</li>
+</ul>
+<h2 id="어떻게-적용하면-좋을까">어떻게 적용하면 좋을까?</h2>
+<p>복잡하고 큰 규모의 프로젝트, 정기 릴리스가 필요한 때 Git Flow를 적용하면 좋을 것 같다. 차량, IOT 기기와 같은 분야에서 많이 이용될 것이고, 참여했던 차량 SW 프로젝트에서 기반으로 한 것이 Git Flow이다.</p>
+<p>빠른 변화와 피드백, 하루에도 여러 번의 배포가 이루어진다면 Trunk Based, GitHub Flow 기반의 Workflow를 사용할 수 있다.
+SaaS, Agile 방식에 적합하고, 단순하지만 그만큼 자동화 테스트, 롤백, 코드 리뷰와 같은 개발 문화 등이 이루어져야 할 것이다.</p>
+<p>Workflow는 딱 정하는 것이 아닌 조직, 프로젝트, 여러 가지 현재 상황에 맞추어 가는 것이 필요하다.
+실제로 안정성을 위해 &lsquo;feature-develop-main&rsquo;, &lsquo;feature-main-production&rsquo;로 구성을 했다가, CI/CD에 unit test, e2e를 적용 후에 &lsquo;feature-main&rsquo;으로 변경을 했었다.</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/workflow/">Workflow</a>
+        
+    </section>
+
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+        2023 Dongle
+    </section>
+    
+    <section class="powerby">
+        <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a>로 만듦 <br />
+        <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>의 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.17.0">Stack</a></b> 테마 사용 중
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>

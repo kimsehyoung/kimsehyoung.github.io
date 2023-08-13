@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Linux on Dongle</title>
+        <link>https://kimsehyoung.github.io/categories/linux/</link>
+        <description>Recent content in Linux on Dongle</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>ko</language>
+        <lastBuildDate>Sat, 12 Aug 2023 23:43:26 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/categories/linux/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>리눅스 명령어</title>
+        <link>https://kimsehyoung.github.io/post/linux/commands/</link>
+        <pubDate>Sat, 12 Aug 2023 23:43:26 +0900</pubDate>
+        
+        <guid>https://kimsehyoung.github.io/post/linux/commands/</guid>
+        <description>&lt;img src="https://kimsehyoung.github.io/post/linux/commands/linux_commands.jpg" alt="Featured image of post 리눅스 명령어" /&gt;&lt;h2 id=&#34;network&#34;&gt;Network&lt;/h2&gt;
+&lt;h3 id=&#34;tcpdump&#34;&gt;tcpdump&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;tcpdump&lt;/code&gt; prints out a description of the contents of packets on a network interface.
+&lt;a class=&#34;link&#34; href=&#34;https://www.tcpdump.org/manpages/tcpdump.1.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://www.tcpdump.org/manpages/tcpdump.1.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tcpdump dst 192.168.11.11 and port &lt;span style=&#34;color:#ae81ff&#34;&gt;22&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tcpdump -i eno1 host 192.168.11.11
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tcpdump host 192.168.11.11 and tcp port &lt;span style=&#34;color:#ae81ff&#34;&gt;443&lt;/span&gt; -w tcpdump.log
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tcpdump -r tcpdump.log
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;nc&#34;&gt;nc&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;nc&lt;/code&gt; scans TCP and UDP connections&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://linux.die.net/man/1/nc&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://linux.die.net/man/1/nc&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;nc -zv 192.168.123.123 443
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;gt; Connection to 192.168.123.123 &lt;span style=&#34;color:#ae81ff&#34;&gt;443&lt;/span&gt; port &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;tcp/*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; succeeded!
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;arping&#34;&gt;arping&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;arping&lt;/code&gt; sends ARP request to a neighbor host.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man8/arping.8.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man8/arping.8.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo arping 192.168.123.123
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;60&lt;/span&gt; bytes from a1:b2:c3:d4:e5:f6 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;192.168.123.123&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; ...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;etc&#34;&gt;ETC&lt;/h2&gt;
+&lt;h3 id=&#34;top&#34;&gt;top&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;top&lt;/code&gt; displays system info as well as a list of processes or threads currently managed by the Linux Kernel.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man1/top.1.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man1/top.1.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;top -p &amp;lt;pid&amp;gt; -H
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;tee&#34;&gt;tee&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;tee&lt;/code&gt; reads from standard input and writes to standard output and files.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man1/tee.1.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man1/tee.1.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt; | tee OUTFILE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cat OUTFILE | tee NEWFILE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt; | tee -a OUTFILE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello&amp;#34;&lt;/span&gt; | tee -a OUTFILE /dev/null
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Why use tee?&lt;br&gt;
+-&amp;gt; It might be thought that &lt;strong&gt;echo&lt;/strong&gt;, &lt;strong&gt;cat&lt;/strong&gt; is sufficient. But, They can’t write into &lt;strong&gt;root&lt;/strong&gt; files.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# &amp;#34;permission denied&amp;#34; occured.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; /root/test.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# It works successfully.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello&amp;#34;&lt;/span&gt; | sudo tee -a /root/test.txt
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;lsof&#34;&gt;lsof&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;lsof&lt;/code&gt; lists file information about files opened by processes.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man8/lsof.8.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man8/lsof.8.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo lsof -a -p &lt;span style=&#34;color:#ae81ff&#34;&gt;1234567&lt;/span&gt; -d cwd
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;COMMAND     PID USER  FD TYPE DEVICE SIZE/OFF   NODE NAME
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;python3 &lt;span style=&#34;color:#ae81ff&#34;&gt;1234567&lt;/span&gt; test cwd  DIR   8,2    &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;5656565&lt;/span&gt; /home/test/test-server
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;screen&#34;&gt;screen&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;screen&lt;/code&gt; multiplexes a physical terminal to each virtual terminal.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://linux.die.net/man/1/screen&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://linux.die.net/man/1/screen&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;When a long-running task on a remote machine is performed, It helps that the SSH session is terminated and the work is corrupted or lost.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Create a new session&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -S test
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Detach the session&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ctrl-a + d
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Resume a detached screen session.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -r test
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Exit with the session termination.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;exit
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;pstree&#34;&gt;pstree&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;pstree&lt;/strong&gt; displays a tree of process.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man1/pstree.1.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man1/pstree.1.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -S test
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;./test-app &amp;amp;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ctrl-a + d
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;screen -ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;pstree -p &lt;span style=&#34;color:#ae81ff&#34;&gt;1234567&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;lsblk&#34;&gt;lsblk&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;lsblk&lt;/strong&gt; lists information about all available or the specified block devices.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://man7.org/linux/man-pages/man8/lsblk.8.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://man7.org/linux/man-pages/man8/lsblk.8.html&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lsblk -o name,rota,size,mountpoint
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;mount&#34;&gt;mount&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;mount&lt;/strong&gt; serves to attach the file system on some device to the specific directory.&lt;br&gt;
+&lt;a class=&#34;link&#34; href=&#34;https://linux.die.net/man/8/mount&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://linux.die.net/man/8/mount&lt;/a&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mount /dev/sda /backup
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;unmount /dev/sda
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;df -h
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+        </item>
+        
+    </channel>
+</rss>

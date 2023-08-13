@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Workflow on Dongle</title>
+        <link>https://kimsehyoung.github.io/tags/workflow/</link>
+        <description>Recent content in Workflow on Dongle</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>ko</language>
+        <lastBuildDate>Sun, 13 Aug 2023 10:15:29 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/tags/workflow/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>Git Workflow</title>
+        <link>https://kimsehyoung.github.io/post/git/workflow/</link>
+        <pubDate>Sun, 13 Aug 2023 10:15:29 +0900</pubDate>
+        
+        <guid>https://kimsehyoung.github.io/post/git/workflow/</guid>
+        <description>&lt;img src="https://kimsehyoung.github.io/post/git/workflow/git_workflow.jpg" alt="Featured image of post Git Workflow" /&gt;&lt;h2 id=&#34;trunk-based&#34;&gt;Trunk based&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;브랜치 관리가 간단하고, CI/CD 와 함께 신속, 지속적인 개발과 배포에 용이&lt;/li&gt;
+&lt;li&gt;코드베이스가 항상 배포 가능한 상태를 유지하므로, 긴급 수정이나 기능 추가가 빠르게 이루어짐.&lt;/li&gt;
+&lt;li&gt;모든 개발자가 단일 브랜치에서 작업하기 때문에, 코드 품질과 안정성 관리에 주의가 필요함.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Branch&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;main&lt;/li&gt;
+&lt;li&gt;short-term&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;git-flow&#34;&gt;Git flow&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;2010&lt;/li&gt;
+&lt;li&gt;프로젝트의 안전성과 관리를 높이는데 초점을 맞춤.&lt;/li&gt;
+&lt;li&gt;브랜치 관리가 복잡하고, 신속한 배포가 어려움.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Branch&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;main&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;항상 production에 배포 가능한 안정적인 코드를 유지하며, 모든 작업의 기준 브랜치 (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;develop&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;개발자가 feature 브랜치를 merge (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;feature&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;기능 개발을 위한 브랜치로, 개발이 완료되면 develop 브랜치로 merge&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;release&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;배포 준비를 위해 QA(Intergration Test) 및 bug fix 후 main, develop로 merge&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;hotfix&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;긴급한 버그 수정을 위한 브랜치로, main에서 분기하여 수정 후 main, develop으로 merge&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/git/workflow/git-flow.png&#34;
+	width=&#34;671&#34;
+	height=&#34;288&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/git/workflow/git-flow_hu5ba9d37bf9c4e7a0a0386bb43d906b12_26965_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/git/workflow/git-flow_hu5ba9d37bf9c4e7a0a0386bb43d906b12_26965_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;git flow&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;232&#34;
+		data-flex-basis=&#34;559px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;github-flow&#34;&gt;GitHub flow&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;2011&lt;/li&gt;
+&lt;li&gt;git flow 의 복잡성을 줄이기 위해 고안됨.&lt;/li&gt;
+&lt;li&gt;빠른 개발 및 배포와 피드백&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Branch&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;main&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;production에 배포되는 안정적인 버전의 브랜치이며, 좀 더 엄격한 규칙이 필요(permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;feature&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;기능 개발을 위한 브랜치로, 개발이 완료되면 main 브랜치로 merge&lt;/li&gt;
+&lt;li&gt;브랜치명은 작업 내용을 표현할 수 있도록 명명&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/git/workflow/github-flow.png&#34;
+	width=&#34;401&#34;
+	height=&#34;179&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/git/workflow/github-flow_hua4ff7fc27af53de93917916480ec2266_12612_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/git/workflow/github-flow_hua4ff7fc27af53de93917916480ec2266_12612_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;github flow&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;224&#34;
+		data-flex-basis=&#34;537px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;gitlab-flow&#34;&gt;GitLab flow&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;2014&lt;/li&gt;
+&lt;li&gt;Git flow와 GitHub flow의 중간 정도의 혼합 방식&lt;/li&gt;
+&lt;li&gt;환경 별 브랜치 사용&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Branch&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;main&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;항상 production에 배포 가능한 안정적인 코드를 유지하며, 모든 작업의 기준 브랜치 (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;feature&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;기능 개발이 완료되면 main 브랜치로 merge&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;staging&lt;/strong&gt;(optional)
+&lt;ul&gt;
+&lt;li&gt;staging환경에서 변경 사항을 테스트 및 검증하여 문제가 없으면 production으로 병함 (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;production&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;실제 서비스에 배포되는 브랜치 (permanent)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;어떻게-적용하면-좋을까&#34;&gt;어떻게 적용하면 좋을까?&lt;/h2&gt;
+&lt;p&gt;복잡하고 큰 규모의 프로젝트, 정기 릴리스가 필요한 때 Git Flow를 적용하면 좋을 것 같다. 차량, IOT 기기와 같은 분야에서 많이 이용될 것이고, 참여했던 차량 SW 프로젝트에서 기반으로 한 것이 Git Flow이다.&lt;/p&gt;
+&lt;p&gt;빠른 변화와 피드백, 하루에도 여러 번의 배포가 이루어진다면 Trunk Based, GitHub Flow 기반의 Workflow를 사용할 수 있다.
+SaaS, Agile 방식에 적합하고, 단순하지만 그만큼 자동화 테스트, 롤백, 코드 리뷰와 같은 개발 문화 등이 이루어져야 할 것이다.&lt;/p&gt;
+&lt;p&gt;Workflow는 딱 정하는 것이 아닌 조직, 프로젝트, 여러 가지 현재 상황에 맞추어 가는 것이 필요하다.
+실제로 안정성을 위해 &amp;lsquo;feature-develop-main&amp;rsquo;, &amp;lsquo;feature-main-production&amp;rsquo;로 구성을 했다가, CI/CD에 unit test, e2e를 적용 후에 &amp;lsquo;feature-main&amp;rsquo;으로 변경을 했었다.&lt;/p&gt;
+</description>
+        </item>
+        
+    </channel>
+</rss>
