@@ -6,7 +6,15 @@
         <description>Recent content in Categories on Dongle</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>ko</language>
-        <lastBuildDate>Sun, 13 Aug 2023 16:30:14 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/categories/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Wed, 23 Aug 2023 19:44:57 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/categories/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>gRPC</title>
+        <link>https://kimsehyoung.github.io/categories/grpc/</link>
+        <pubDate>Wed, 23 Aug 2023 19:44:57 +0900</pubDate>
+        
+        <guid>https://kimsehyoung.github.io/categories/grpc/</guid>
+        <description></description>
+        </item>
+        <item>
         <title>Kubernetes</title>
         <link>https://kimsehyoung.github.io/categories/kubernetes/</link>
         <pubDate>Sun, 13 Aug 2023 16:30:14 +0900</pubDate>

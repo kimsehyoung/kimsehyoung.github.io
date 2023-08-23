@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Kubernetes on Dongle</title>
+        <link>https://kimsehyoung.github.io/tags/kubernetes/</link>
+        <description>Recent content in Kubernetes on Dongle</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>ko</language>
+        <lastBuildDate>Wed, 23 Aug 2023 19:44:57 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>gRPC Load Balancing</title>
+        <link>https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/</link>
+        <pubDate>Wed, 23 Aug 2023 19:44:57 +0900</pubDate>
+        
+        <guid>https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/</guid>
+        <description>&lt;img src="https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/load-balancing.png" alt="Featured image of post gRPC Load Balancing" /&gt;&lt;p&gt;Comming Soon&lt;/p&gt;
+</description>
+        </item>
+        
+    </channel>
+</rss>

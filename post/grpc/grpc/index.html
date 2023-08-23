@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="ko" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='RPC RPC(Remote Procedure Call)는 클라이언트가 서버의 procedure(함수)를 마치 로컬에 있는 것처럼 호출하는 것이다. 다음 동작 단계를 보면서, 어떤 건지 알아보자.
+RPC는 로컬 메서드를 호출하는 것처럼 보이지만, 클라이언트와 서버는 별도의 프로세스로 다른 주소 공간을 가지므로, 서로 통신을 위해서 JSON, Ptotobuf, Thrift 같은 IDL(Interface Definition Language)로 호출 규약을 정의한다. rpcgen으로 IDL 파일을 컴파일하여 클라이언트와 서버의 Stub 코드를 생성한다. Stub은 Source code(C&#43;&#43;, Java, Python, Go&amp;hellip;)의 형태로 서버에서는 Stub을 사용하여 프로시저에 대한 기능 구현이 필요하다.'>
+<title>gRPC에 대해 알아보자</title>
+
+<link rel='canonical' href='https://kimsehyoung.github.io/post/grpc/grpc/'>
+
+<link rel="stylesheet" href="/scss/style.min.ff300df33b80e2ac49809c825614392ed1c7b27591d65d3c4043602cd162e25f.css"><meta property='og:title' content='gRPC에 대해 알아보자'>
+<meta property='og:description' content='RPC RPC(Remote Procedure Call)는 클라이언트가 서버의 procedure(함수)를 마치 로컬에 있는 것처럼 호출하는 것이다. 다음 동작 단계를 보면서, 어떤 건지 알아보자.
+RPC는 로컬 메서드를 호출하는 것처럼 보이지만, 클라이언트와 서버는 별도의 프로세스로 다른 주소 공간을 가지므로, 서로 통신을 위해서 JSON, Ptotobuf, Thrift 같은 IDL(Interface Definition Language)로 호출 규약을 정의한다. rpcgen으로 IDL 파일을 컴파일하여 클라이언트와 서버의 Stub 코드를 생성한다. Stub은 Source code(C&#43;&#43;, Java, Python, Go&amp;hellip;)의 형태로 서버에서는 Stub을 사용하여 프로시저에 대한 기능 구현이 필요하다.'>
+<meta property='og:url' content='https://kimsehyoung.github.io/post/grpc/grpc/'>
+<meta property='og:site_name' content='Dongle'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Protobuf' /><meta property='article:tag' content='gRPC' /><meta property='article:tag' content='MSA' /><meta property='article:published_time' content='2023-08-23T19:11:30&#43;09:00'/><meta property='article:modified_time' content='2023-08-23T19:11:30&#43;09:00'/><meta property='og:image' content='https://kimsehyoung.github.io/post/grpc/grpc/grpc.png' />
+<meta name="twitter:title" content="gRPC에 대해 알아보자">
+<meta name="twitter:description" content="RPC RPC(Remote Procedure Call)는 클라이언트가 서버의 procedure(함수)를 마치 로컬에 있는 것처럼 호출하는 것이다. 다음 동작 단계를 보면서, 어떤 건지 알아보자.
+RPC는 로컬 메서드를 호출하는 것처럼 보이지만, 클라이언트와 서버는 별도의 프로세스로 다른 주소 공간을 가지므로, 서로 통신을 위해서 JSON, Ptotobuf, Thrift 같은 IDL(Interface Definition Language)로 호출 규약을 정의한다. rpcgen으로 IDL 파일을 컴파일하여 클라이언트와 서버의 Stub 코드를 생성한다. Stub은 Source code(C&#43;&#43;, Java, Python, Go&amp;hellip;)의 형태로 서버에서는 Stub을 사용하여 프로시저에 대한 기능 구현이 필요하다."><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://kimsehyoung.github.io/post/grpc/grpc/grpc.png' />
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "light");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="메뉴 여닫기">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_huda2458f72ce188392d75c5d51cd8e24e_373_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">🥕</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Dongle</a></h1>
+            <h2 class="site-description">Hello, I&#39;m Sehyoung.</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        href='https://github.com/kimsehyoung'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <title>github [#142]</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+
+</defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Dribbble-Light-Preview" transform="translate(-140.000000, -7559.000000)" fill="#000000">
+            <g id="icons" transform="translate(56.000000, 160.000000)">
+                <path d="M94,7399 C99.523,7399 104,7403.59 104,7409.253 C104,7413.782 101.138,7417.624 97.167,7418.981 C96.66,7419.082 96.48,7418.762 96.48,7418.489 C96.48,7418.151 96.492,7417.047 96.492,7415.675 C96.492,7414.719 96.172,7414.095 95.813,7413.777 C98.04,7413.523 100.38,7412.656 100.38,7408.718 C100.38,7407.598 99.992,7406.684 99.35,7405.966 C99.454,7405.707 99.797,7404.664 99.252,7403.252 C99.252,7403.252 98.414,7402.977 96.505,7404.303 C95.706,7404.076 94.85,7403.962 94,7403.958 C93.15,7403.962 92.295,7404.076 91.497,7404.303 C89.586,7402.977 88.746,7403.252 88.746,7403.252 C88.203,7404.664 88.546,7405.707 88.649,7405.966 C88.01,7406.684 87.619,7407.598 87.619,7408.718 C87.619,7412.646 89.954,7413.526 92.175,7413.785 C91.889,7414.041 91.63,7414.493 91.54,7415.156 C90.97,7415.418 89.522,7415.871 88.63,7414.304 C88.63,7414.304 88.101,7413.319 87.097,7413.247 C87.097,7413.247 86.122,7413.234 87.029,7413.87 C87.029,7413.87 87.684,7414.185 88.139,7415.37 C88.139,7415.37 88.726,7417.2 91.508,7416.58 C91.513,7417.437 91.522,7418.245 91.522,7418.489 C91.522,7418.76 91.338,7419.077 90.839,7418.982 C86.865,7417.627 84,7413.783 84,7409.253 C84,7403.59 88.478,7399 94,7399" id="github-[#142]">
+
+</path>
+            </g>
+        </g>
+    </g>
+</svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='mailto:kimsehyoung6572@gmail.com'
+                        target="_blank"
+                        title="Gmail"
+                        rel="me"
+                    >
+                        
+                        
+                            <?xml version="1.0" encoding="utf-8"?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 11.9556C2 8.47078 2 6.7284 2.67818 5.39739C3.27473 4.22661 4.22661 3.27473 5.39739 2.67818C6.7284 2 8.47078 2 11.9556 2H20.0444C23.5292 2 25.2716 2 26.6026 2.67818C27.7734 3.27473 28.7253 4.22661 29.3218 5.39739C30 6.7284 30 8.47078 30 11.9556V20.0444C30 23.5292 30 25.2716 29.3218 26.6026C28.7253 27.7734 27.7734 28.7253 26.6026 29.3218C25.2716 30 23.5292 30 20.0444 30H11.9556C8.47078 30 6.7284 30 5.39739 29.3218C4.22661 28.7253 3.27473 27.7734 2.67818 26.6026C2 25.2716 2 23.5292 2 20.0444V11.9556Z" fill="white"/>
+<path d="M22.0515 8.52295L16.0644 13.1954L9.94043 8.52295V8.52421L9.94783 8.53053V15.0732L15.9954 19.8466L22.0515 15.2575V8.52295Z" fill="#EA4335"/>
+<path d="M23.6231 7.38639L22.0508 8.52292V15.2575L26.9983 11.459V9.17074C26.9983 9.17074 26.3978 5.90258 23.6231 7.38639Z" fill="#FBBC05"/>
+<path d="M22.0508 15.2575V23.9924H25.8428C25.8428 23.9924 26.9219 23.8813 26.9995 22.6513V11.459L22.0508 15.2575Z" fill="#34A853"/>
+<path d="M9.94811 24.0001V15.0732L9.94043 15.0669L9.94811 24.0001Z" fill="#C5221F"/>
+<path d="M9.94014 8.52404L8.37646 7.39382C5.60179 5.91001 5 9.17692 5 9.17692V11.4651L9.94014 15.0667V8.52404Z" fill="#C5221F"/>
+<path d="M9.94043 8.52441V15.0671L9.94811 15.0734V8.53073L9.94043 8.52441Z" fill="#C5221F"/>
+<path d="M5 11.4668V22.6591C5.07646 23.8904 6.15673 24.0003 6.15673 24.0003H9.94877L9.94014 15.0671L5 11.4668Z" fill="#4285F4"/>
+</svg>
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>Home</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/page/about/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>About</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/page/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>Archives</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/page/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>Search</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/page/links/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>Links</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>Dark Mode</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        
+        <h2 class="widget-title section-title" style="font-size: 18px;">목차</h2>
+        
+        <div class="widget--toc" style="line-height: 0.6;">
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#rpc">RPC</a></li>
+    <li><a href="#grpc">gRPC</a></li>
+    <li><a href="#grpc-gateway">gRPC-Gateway</a></li>
+    <li><a href="#pros-and-cons">Pros and Cons</a></li>
+  </ul>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/post/grpc/grpc/">
+                <img src="/post/grpc/grpc/grpc_hu6f115954a23a43b81942d129ea8277b1_80687_800x0_resize_box_3.png"
+                        srcset="/post/grpc/grpc/grpc_hu6f115954a23a43b81942d129ea8277b1_80687_800x0_resize_box_3.png 800w, /post/grpc/grpc/grpc_hu6f115954a23a43b81942d129ea8277b1_80687_1600x0_resize_box_3.png 1600w"
+                        width="800" 
+                        height="477" 
+                        loading="lazy"
+                        alt="Featured image of post gRPC에 대해 알아보자" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/grpc/" >
+                gRPC
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/post/grpc/grpc/">gRPC에 대해 알아보자</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Aug 23, 2023</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    2 분 정도
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="rpc">RPC</h2>
+<p><code>RPC</code>(Remote Procedure Call)는 클라이언트가 서버의 procedure(함수)를 마치 로컬에 있는 것처럼 호출하는 것이다.
+다음 동작 단계를 보면서, 어떤 건지 알아보자.</p>
+<ol>
+<li><code>RPC</code>는 로컬 메서드를 호출하는 것처럼 보이지만, 클라이언트와 서버는 별도의 프로세스로 다른 주소 공간을 가지므로, 서로 통신을 위해서 JSON, Ptotobuf, Thrift 같은 <code>IDL</code>(Interface Definition Language)로 호출 규약을 정의한다.</li>
+<li>rpcgen으로 <code>IDL</code> 파일을 컴파일하여 클라이언트와 서버의 <code>Stub</code> 코드를 생성한다.</li>
+<li><code>Stub</code>은 Source code(C++, Java, Python, Go&hellip;)의 형태로 서버에서는 Stub을 사용하여 프로시저에 대한 <code>기능 구현</code>이 필요하다.</li>
+<li>각 클라이언트, 서버에서는 <code>Stub</code> 코드를 같이 빌드한다.</li>
+<li>클라이언트는 전달할 매개변수를 <code>Mashalling</code>하고, 로컬 Stub 프로시저를 호출하여 서버에 메시지를 전송한다.</li>
+<li>서버는 Stub을 통해 해당 프로시저가 호출되고, 매개변수를 <code>Unmarshalling</code>하여 요청을 수행한 결과를 Mashalling하여 클라이언트에게 전송한다.</li>
+<li>클라이언트는 해당 서버 프로시저에 대한 결과를 받으며, 마치 <code>로컬 메서드</code>를 호출하는 것처럼 사용을 할 수 있게 된다.</li>
+</ol>
+<p><img src="/post/grpc/grpc/how-rpc-works.png"
+	width="263"
+	height="221"
+	srcset="/post/grpc/grpc/how-rpc-works_hu1646f65cbd4ca5e461afe8f60f3ef0b0_1418_480x0_resize_box_3.png 480w, /post/grpc/grpc/how-rpc-works_hu1646f65cbd4ca5e461afe8f60f3ef0b0_1418_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="how-rpc-works"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="119"
+		data-flex-basis="285px"
+	
+></p>
+<p>(<a class="link" href="https://learn.microsoft.com/en-us/windows/win32/rpc/how-rpc-works"  target="_blank" rel="noopener"
+    >https://learn.microsoft.com/en-us/windows/win32/rpc/how-rpc-works</a>)</p>
+<hr>
+<h2 id="grpc">gRPC</h2>
+<p>Google 내부에서 마이크로 서비스를 연결하는데 사용한 Stubby라는 RPC 인프라를 표준화한 오픈소스 프레임워크</p>
+<p><strong>가장 큰 특징은 <code>Probocol Buffers</code>, <code>HTTP/2</code>를 사용</strong></p>
+<ul>
+<li><code>Protobuf</code>는 google에서 만든 구조화된 데이터를 직렬화하는 방식으로 JSON 형식보다 작은 크기로 효율적</li>
+<li><code>HTTP/2</code>는 헤더 압축, 이진 형식, 서버 푸시, 멀티플렉싱&hellip; 으로 성능 향상을 가져옴</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-proto" data-lang="proto"><span style="display:flex;"><span><span style="color:#75715e">// Protobuf로 서비스 API를 정의
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">HelloRequest</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> msg <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">HelloResponse</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> msg <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">service</span> HelloService {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">rpc</span> SayHello (HelloRequest) <span style="color:#66d9ef">returns</span> (HelloResponse);<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><h2 id="grpc-gateway">gRPC-Gateway</h2>
+<p><code>gRPC</code>는 좋은 장점들이 있지만, 몇 가지 고려할 점이 있다.</p>
+<ul>
+<li>개발자들이 gRPC에 익숙지 않거나, 기존 서비스들이 REST 기반이라면 한 번에 서비스 전체에 gRPC를 적용하기 어려움</li>
+<li>브라우저에서 gRPC가 지원이 안 되기에, 추가적으로 <code>gRPC-Web</code> 또는 <code>gRPC-Gateway</code> 필요</li>
+</ul>
+<p>이러한 이유들로 <code>gRPC-Gateway</code>를 사용할 수 있다.<br>
+gRPC Gateway는 <code>REST</code>를 <code>gRPC</code>로 변환하는 <code>리버스 프록시 서버</code>를 생성하는 방식으로 gRPC, REST 모두 호출 가능하게 해준다.</p>
+<p><img src="/post/grpc/grpc/grpc-gateway.png"
+	width="693"
+	height="475"
+	srcset="/post/grpc/grpc/grpc-gateway_hudaed239fae906faca4e9c879395c2cc6_31372_480x0_resize_box_3.png 480w, /post/grpc/grpc/grpc-gateway_hudaed239fae906faca4e9c879395c2cc6_31372_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="gRPC-Gateway"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="145"
+		data-flex-basis="350px"
+	
+></p>
+<p>(<a class="link" href="https://github.com/grpc-ecosystem/grpc-gateway"  target="_blank" rel="noopener"
+    >https://github.com/grpc-ecosystem/grpc-gateway</a>)</p>
+<h2 id="pros-and-cons">Pros and Cons</h2>
+<p><code>Pros</code></p>
+<ul>
+<li>Polyglot 환경 (protobuf를 기반으로 gRPC가 지원하는 다양한 언어로 Stub코드 생성)</li>
+<li>양방향 통신 (Unary, Client streaming, server streaming, Bidirectional Streaming)</li>
+<li>네트워크 성능 (Protobuf, HTTP/2)</li>
+<li>API 문서 없이 Protobuf만으로 인터페이스 명세 (필요 시, gRPC-Gateway plugin으로 OpenAPI 문서 생성 가능)</li>
+<li>Interceptor, Load balancing 같은 유용한 내장 기능 제공</li>
+</ul>
+<p><code>Cons</code></p>
+<ul>
+<li>JSON/REST를 주로 사용했다면, 러닝 커브로 인한 도입 어려움</li>
+<li>gRPC는 브라우저 직접적인 지원이 안 되기에, 추가적인 방법이 필요</li>
+<li>TCP 연결을 유지하는 HTTP/2의 특성으로 인해, 로드 밸런싱의 어려움</li>
+</ul>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/protobuf/">Protobuf</a>
+        
+            <a href="/tags/grpc/">gRPC</a>
+        
+            <a href="/tags/msa/">MSA</a>
+        
+    </section>
+
+
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+        2023 Dongle
+    </section>
+    
+    <section class="powerby">
+        <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a>로 만듦 <br />
+        <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>의 <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.17.0">Stack</a></b> 테마 사용 중
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
