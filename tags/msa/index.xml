@@ -7,50 +7,266 @@
         <generator>Hugo -- gohugo.io</generator>
         <language>ko</language>
         <lastBuildDate>Wed, 23 Aug 2023 19:44:57 +0900</lastBuildDate><atom:link href="https://kimsehyoung.github.io/tags/msa/index.xml" rel="self" type="application/rss+xml" /><item>
-        <title>gRPC Load Balancing</title>
+        <title>gRPC Load Balancing in Kubernetes</title>
         <link>https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/</link>
         <pubDate>Wed, 23 Aug 2023 19:44:57 +0900</pubDate>
         
         <guid>https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/</guid>
-        <description>&lt;img src="https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/load-balancing.png" alt="Featured image of post gRPC Load Balancing" /&gt;&lt;p&gt;Comming Soon&lt;/p&gt;
-</description>
+        <description>&lt;img src="https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/load-balancing.png" alt="Featured image of post gRPC Load Balancing in Kubernetes" /&gt;&lt;h2 id=&#34;tricky-load-balancing&#34;&gt;Tricky Load Balancing&lt;/h2&gt;
+&lt;p&gt;Kunertest에서 gRPC를 사용하면서 발생하는 로드밸런싱 문제를 어떻게 해결할 수 있는지 알아보자.&lt;/p&gt;
+&lt;p&gt;Client가 gRPC 서버로 &lt;strong&gt;Connection&lt;/strong&gt;을 맺은 후, 서버의 cpu/memory 사용량이 증가하면서 &lt;strong&gt;auto scaling policy&lt;/strong&gt;으로 새 pod가 생성된다.
+그러나, 새 pod에 트래픽이 전달되지 않는 것을 볼 수 있는데, 이는 gRPC 글에서 얘기한 &lt;code&gt;Multiplexing&lt;/code&gt;으로 인한 것이다.&lt;br&gt;
+이를 해결하기 위한 방법으로 크게 3가지 방법이 있다. 상황에 맞는 방식을 선택하는게 필요하며, 이번에는 1, 2번을 적용해보고 다음에 Service Mesh를 적용해보자.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Client-side Load Balancing&lt;/li&gt;
+&lt;li&gt;L7 Load Balancing&lt;/li&gt;
+&lt;li&gt;Service Mesh
+&lt;ul&gt;
+&lt;li&gt;proxy&lt;/li&gt;
+&lt;li&gt;proxyless (xds)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/tricky-load-balancing.png&#34;
+	width=&#34;380&#34;
+	height=&#34;339&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/tricky-load-balancing_hua92a8057361e072436c14118fb96fa93_21413_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/tricky-load-balancing_hua92a8057361e072436c14118fb96fa93_21413_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;Tricky Load Balancing&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;112&#34;
+		data-flex-basis=&#34;269px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;(&lt;a class=&#34;link&#34; href=&#34;https://kubernetes.io/blog/2018/11/07/grpc-load-balancing-on-kubernetes-without-tears/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://kubernetes.io/blog/2018/11/07/grpc-load-balancing-on-kubernetes-without-tears/&lt;/a&gt;)&lt;/p&gt;
+&lt;h2 id=&#34;client-side-load-balancing&#34;&gt;Client-side Load Balancing&lt;/h2&gt;
+&lt;p&gt;gRPC는 &lt;strong&gt;Client-side Load Balancing&lt;/strong&gt; 기능을 제공하는데,&lt;code&gt;pick_fist&lt;/code&gt;, &lt;code&gt;round_robin&lt;/code&gt; 2가지 방식이 있다.&lt;br&gt;
+&lt;strong&gt;Default&lt;/strong&gt;는  &lt;code&gt;pick_first&lt;/code&gt;인데, 말 그대로 resolver에서 주소 리스트를 받아 첫 번째 주소로 연결을 시도하고,
+RPC들은 Channel을 통해 보내진다. 연결이 끊길 경우, &lt;strong&gt;backkoff&lt;/strong&gt;로 다시 주소 리스트에서 연결 가능한 곳으로 connection을 맺게 된다.&lt;br&gt;
+&lt;code&gt;round_robin&lt;/code&gt;은 resolver로부터 주소 리스트를 받아서, 각 주소에 대해 &lt;strong&gt;subchannel&lt;/strong&gt;을 생성하고, 연결이 끊기면 다시 연결을 시도한다.&lt;br&gt;
+(&lt;a class=&#34;link&#34; href=&#34;https://github.com/grpc/grpc/blob/master/doc/load-balancing.md#load-balancing-policies&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://github.com/grpc/grpc/blob/master/doc/load-balancing.md#load-balancing-policies&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;아래에서 pick first, round robin 의  예시를 볼 수 있다.&lt;br&gt;
+(&lt;a class=&#34;link&#34; href=&#34;https://github.com/grpc/grpc-go/blob/master/examples/features/load_balancing/README.md&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://github.com/grpc/grpc-go/blob/master/examples/features/load_balancing/README.md&lt;/a&gt;)&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;this is pick first &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;from :10001&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;this is pick first &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;from :10001&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;this is pick first &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;from :10001&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;this is round robin &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;from :10001&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;this is round robin &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;from :10002&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;this is round robin &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;from :10003&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;위의 예시를 테스트해보면 Round-robin 설정으로 여러 서버에 로드밸런싱이 되는 것을 확인할 수 있다. 그러나 Kubenetes에서 추가로 필요한 작업들이 몇 가지 있다.&lt;/p&gt;
+&lt;p&gt;위의 예제에서는 서버 IP를 가지고 Custom resolver을 사용했지만, 나는 Kubernetes &lt;code&gt;Service&lt;/code&gt; 도메인으로부터 &lt;strong&gt;Pods의 IP&lt;/strong&gt; 주소들을 가져오려고 한다.
+&lt;strong&gt;gRPC의&lt;/strong&gt; 기본 &lt;code&gt;resolver&lt;/code&gt;를 사용할 경우, Default는 &lt;strong&gt;passthrough&lt;/strong&gt;방식인데, 이는 Client가 &lt;strong&gt;Service&lt;/strong&gt; 이름에서 여러 IP 주소를 얻을 수 없기에, &lt;code&gt;dns&lt;/code&gt; scheme를 기본으로 설정해줘야 한다.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&#34;link&#34; href=&#34;https://pkg.go.dev/google.golang.org/grpc/resolver#SetDefaultScheme&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://pkg.go.dev/google.golang.org/grpc/resolver#SetDefaultScheme&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class=&#34;link&#34; href=&#34;https://github.com/grpc/grpc-go/blob/master/resolver/resolver.go#L39&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://github.com/grpc/grpc-go/blob/master/resolver/resolver.go#L39&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;그럼, 계속 이어서 다음으로 필요한 내용들을 보자.&lt;br&gt;
+Kuberntes의 &lt;code&gt;Service&lt;/code&gt; 레이어는 Client 요청을 L4 레벨 로드밸런싱으로 Service에 연결된 Pods 중 하나로 전달해준다.&lt;br&gt;
+Client에서 Lound-robin방식으로 설정한다 해도 이 서비스 레이어의 &lt;strong&gt;L4&lt;/strong&gt;, &lt;strong&gt;persistent connection&lt;/strong&gt;으로 인해, 한 Client의 요청은 하나의 Pod로만 전달되고, 다른 replica pods들은 트래픽을 받지 못하게 된다.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/service.png&#34;
+	width=&#34;766&#34;
+	height=&#34;561&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/service_hu973698e1dcc75b81b55580eb0c587af1_98629_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/service_hu973698e1dcc75b81b55580eb0c587af1_98629_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;Kubernetes Service&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;136&#34;
+		data-flex-basis=&#34;327px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;(&lt;a class=&#34;link&#34; href=&#34;https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://kubernetes.io/docs/tutorials/kubernetes-basics/expose/expose-intro/&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;그럼, 어떻게 하면 될지 계속 살펴보자.&lt;br&gt;
+Kubernetes는 &lt;code&gt;Headless Service&lt;/code&gt;로 &lt;strong&gt;Service&lt;/strong&gt;에 대한 단일 IP가 아닌, 각 포드 IP에 대한 다중 A 레코드를 생성할 수 있는데,
+이를 통해 Client가 직접 replica Pods에 대한 주소 리스트를 받아서 로드밸런싱을 할 수 있다.&lt;/p&gt;
+&lt;p&gt;그런데 &amp;hellip; 여기서 문제가 하나 더 있다. autoScaling 설정으로 사용자 트래픽이 증가하면서 생성된 새 Pods에는 요청이 전달되지
+않는 것이다. 왜냐하면, Client가 Resolver로부터 주소 리스트를 받아서 subchannels를 생성한 후에, 서버로 연결이 끊어져 실패하기
+전까지 새로운 주소로 연결을 시도하지 않기 때문이다. 그래서, &lt;code&gt;MaxConnectionAge&lt;/code&gt;를 설정하여 일정시간이 지나면 재연결을 하는 방법이 있는데,
+설정 값에 따라 pod가 새로 생성된 후 트래픽이 전달되기까지는 시간이 걸릴 것이다.&lt;/p&gt;
+&lt;p&gt;이제, 위 내용을 토대로 Kubernetes에서 Client Load Balancing 예시를 보겠다.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Client&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-Go&#34; data-lang=&#34;Go&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;resolver&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;SetDefaultScheme&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;dns&amp;#34;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;conn&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Dial&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;lt;service-name&amp;gt;&amp;lt;namespace&amp;gt;.svc.cluster.local&amp;#34;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;WithDefaultServiceConfig&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;`{&amp;#34;loadBalancingConfig&amp;#34;: [{&amp;#34;round_robin&amp;#34;:{}}]}`&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Server&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-Go&#34; data-lang=&#34;Go&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;server&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;NewServer&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;KeepaliveParams&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;keepalive&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;ServerParameters&lt;/span&gt;{&lt;span style=&#34;color:#a6e22e&#34;&gt;Time&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Minute&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;MaxConnectionAgeGrace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;time&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Second&lt;/span&gt;}),
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Kubernetes&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;clusterIP&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;None&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;l7-load-balancer&#34;&gt;L7 Load Balancer&lt;/h2&gt;
+&lt;p&gt;gRPC는 TCP connection을 유지하기에, Kubernetes Service의 L4가 아닌 L7 Load Balancer가 따로 필요하다.&lt;br&gt;
+L7 로드밸런싱을 제공하는 여러 Load Balancer가 있는데, 그 중 &lt;strong&gt;Traefik&lt;/strong&gt;으로 진행해본다.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/linkerd.png&#34;
+	width=&#34;570&#34;
+	height=&#34;354&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/linkerd_huad22a2832c36b9a82810854146adcf5a_33987_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/grpc/grpc_load_balancing/linkerd_huad22a2832c36b9a82810854146adcf5a_33987_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;Application Load Balancer&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;161&#34;
+		data-flex-basis=&#34;386px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;(&lt;a class=&#34;link&#34; href=&#34;https://kubernetes.io/blog/2018/11/07/grpc-load-balancing-on-kubernetes-without-tears/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://kubernetes.io/blog/2018/11/07/grpc-load-balancing-on-kubernetes-without-tears/&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;서비스에 대한 &lt;strong&gt;manifest&lt;/strong&gt; 파일을 클러스터에 적용하고, 오토스케일링을 위해 &lt;strong&gt;metrics-server&lt;/strong&gt;도 배포해준다.&lt;br&gt;
+그 다음, &lt;code&gt;Traefik&lt;/code&gt;도 알맞게 설정 후 적용한다.&lt;br&gt;
+아래에서는, test-a, test-b, test-c gRPC 서버들이 있고, client에서 요청을 전달한다고 가정한다.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubectl apply -f metrics-server.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubectl apply -f test-a.yaml -f test-b.yaml -f test-c.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;helm repo add traefik https://helm.traefik.io/traefik
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;helm repo update
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;helm search repo traefik/traefik --versions
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;helm show values traefik/traefik --version &amp;lt;version&amp;gt; traefik-values.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# traefik-values 파일을 수정해서, 설정 오버라이딩&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;helm install traefik-l7-lb traefik/traefik --version &amp;lt;version&amp;gt; -n dongle -f traefik-values-override.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kubectl apply -f traefik-route.yaml
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;test-a&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;test-a-service&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;dongle&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;type&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;ClusterIP&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;selector&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;app.kubernetes.io/name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;test-a&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        - &lt;span style=&#34;color:#f92672&#34;&gt;protocol&lt;/span&gt;: &lt;span style=&#34;color:#f92672&#34;&gt;TCP&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;port&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10001&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#f92672&#34;&gt;targetPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10001&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;---
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Deployment&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;test-a&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;dongle&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;replicas&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;---
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;HorizontalPodAutoscaler&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;test-a-hpa&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;dongle&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;scaleTargetRef&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Deployment&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;test-a&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;minReplicas&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;maxReplicas&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;traefik-values-override&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# https://github.dev/traefik/traefik-helm-chart/blob/master/traefik/templates/service.yaml&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# https://github.com/traefik/traefik-helm-chart/blob/master/traefik/VALUES.md#values&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# https://github.com/traefik/traefik-helm-chart/blob/master/traefik/VALUES.md&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;ports&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;test-a&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;port&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10001&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;expose&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;exposedPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10001&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;protocol&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;TCP&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;test-b&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;port&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10002&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;expose&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;exposedPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10002&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;protocol&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;TCP&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;test-c&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;port&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10003&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;expose&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;exposedPort&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10003&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;protocol&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;TCP&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;service&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;type&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;LoadBalancer&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;traefik-route&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# https://doc.traefik.io/traefik/routing/providers/kubernetes-crd/#kind-ingressroute&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# https://doc.traefik.io/traefik/user-guides/grpc/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;traefik.containo.us/v1alpha1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;IngressRoute&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;test-a-ingress-route&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;dongle&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;entryPoints&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#ae81ff&#34;&gt;test-a&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;routes&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#f92672&#34;&gt;match&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;PathPrefix(`/`)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Rule&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;services&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;test-a-service&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;port&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10001&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;scheme&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;h2c&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;---
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;traefik.containo.us/v1alpha1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;IngressRoute&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;test-b-ingress-route&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;dongle&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;entryPoints&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#ae81ff&#34;&gt;test-b&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;routes&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#f92672&#34;&gt;match&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;PathPrefix(`/`)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Rule&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;services&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;test-b-service&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;port&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10002&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;scheme&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;h2c&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;---
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;traefik.containo.us/v1alpha1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;IngressRoute&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;test-c-ingress-route&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;namespace&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;dongle&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;entryPoints&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#ae81ff&#34;&gt;test-c&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;routes&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#f92672&#34;&gt;match&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;PathPrefix(`/`)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Rule&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;services&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;test-b-service&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;port&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;10003&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;          &lt;span style=&#34;color:#f92672&#34;&gt;scheme&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;h2c&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
         </item>
         <item>
-        <title>gRPC에 대해 알아보자</title>
+        <title>gRPC를 알아보자</title>
         <link>https://kimsehyoung.github.io/post/grpc/grpc/</link>
         <pubDate>Wed, 23 Aug 2023 19:11:30 +0900</pubDate>
         
         <guid>https://kimsehyoung.github.io/post/grpc/grpc/</guid>
-        <description>&lt;img src="https://kimsehyoung.github.io/post/grpc/grpc/grpc.png" alt="Featured image of post gRPC에 대해 알아보자" /&gt;&lt;h2 id=&#34;rpc&#34;&gt;RPC&lt;/h2&gt;
-&lt;p&gt;&lt;code&gt;RPC&lt;/code&gt;(Remote Procedure Call)는 클라이언트가 서버의 procedure(함수)를 마치 로컬에 있는 것처럼 호출하는 것이다.
-다음 동작 단계를 보면서, 어떤 건지 알아보자.&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;&lt;code&gt;RPC&lt;/code&gt;는 로컬 메서드를 호출하는 것처럼 보이지만, 클라이언트와 서버는 별도의 프로세스로 다른 주소 공간을 가지므로, 서로 통신을 위해서 JSON, Ptotobuf, Thrift 같은 &lt;code&gt;IDL&lt;/code&gt;(Interface Definition Language)로 호출 규약을 정의한다.&lt;/li&gt;
-&lt;li&gt;rpcgen으로 &lt;code&gt;IDL&lt;/code&gt; 파일을 컴파일하여 클라이언트와 서버의 &lt;code&gt;Stub&lt;/code&gt; 코드를 생성한다.&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;Stub&lt;/code&gt;은 Source code(C++, Java, Python, Go&amp;hellip;)의 형태로 서버에서는 Stub을 사용하여 프로시저에 대한 &lt;code&gt;기능 구현&lt;/code&gt;이 필요하다.&lt;/li&gt;
-&lt;li&gt;각 클라이언트, 서버에서는 &lt;code&gt;Stub&lt;/code&gt; 코드를 같이 빌드한다.&lt;/li&gt;
-&lt;li&gt;클라이언트는 전달할 매개변수를 &lt;code&gt;Mashalling&lt;/code&gt;하고, 로컬 Stub 프로시저를 호출하여 서버에 메시지를 전송한다.&lt;/li&gt;
-&lt;li&gt;서버는 Stub을 통해 해당 프로시저가 호출되고, 매개변수를 &lt;code&gt;Unmarshalling&lt;/code&gt;하여 요청을 수행한 결과를 Mashalling하여 클라이언트에게 전송한다.&lt;/li&gt;
-&lt;li&gt;클라이언트는 해당 서버 프로시저에 대한 결과를 받으며, 마치 &lt;code&gt;로컬 메서드&lt;/code&gt;를 호출하는 것처럼 사용을 할 수 있게 된다.&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/grpc/grpc/how-rpc-works.png&#34;
-	width=&#34;263&#34;
-	height=&#34;221&#34;
-	srcset=&#34;https://kimsehyoung.github.io/post/grpc/grpc/how-rpc-works_hu1646f65cbd4ca5e461afe8f60f3ef0b0_1418_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/grpc/grpc/how-rpc-works_hu1646f65cbd4ca5e461afe8f60f3ef0b0_1418_1024x0_resize_box_3.png 1024w&#34;
-	loading=&#34;lazy&#34;
-	
-		alt=&#34;how-rpc-works&#34;
-	
-	
-		class=&#34;gallery-image&#34; 
-		data-flex-grow=&#34;119&#34;
-		data-flex-basis=&#34;285px&#34;
-	
-&gt;&lt;/p&gt;
-&lt;p&gt;(&lt;a class=&#34;link&#34; href=&#34;https://learn.microsoft.com/en-us/windows/win32/rpc/how-rpc-works&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
-    &gt;https://learn.microsoft.com/en-us/windows/win32/rpc/how-rpc-works&lt;/a&gt;)&lt;/p&gt;
-&lt;hr&gt;
-&lt;h2 id=&#34;grpc&#34;&gt;gRPC&lt;/h2&gt;
+        <description>&lt;img src="https://kimsehyoung.github.io/post/grpc/grpc/grpc.png" alt="Featured image of post gRPC를 알아보자" /&gt;&lt;h2 id=&#34;overview&#34;&gt;Overview&lt;/h2&gt;
 &lt;p&gt;Google 내부에서 마이크로 서비스를 연결하는데 사용한 Stubby라는 RPC 인프라를 표준화한 오픈소스 프레임워크&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;가장 큰 특징은 &lt;code&gt;Probocol Buffers&lt;/code&gt;, &lt;code&gt;HTTP/2&lt;/code&gt;를 사용&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
@@ -68,7 +284,105 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;service&lt;/span&gt; HelloService {&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;rpc&lt;/span&gt; SayHello (HelloRequest) &lt;span style=&#34;color:#66d9ef&#34;&gt;returns&lt;/span&gt; (HelloResponse);&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;}&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;grpc-gateway&#34;&gt;gRPC-Gateway&lt;/h2&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;rpc&#34;&gt;RPC&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;RPC&lt;/code&gt;(Remote Procedure Call)는 클라이언트가 서버의 procedure(함수)를 마치 로컬에 있는 것처럼 호출하는 것이다.
+다음 동작 단계를 보면서, 어떤 건지 알아보자.&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;RPC&lt;/code&gt;는 로컬 메서드를 호출하는 것처럼 보이지만, 클라이언트와 서버는 별도의 프로세스로 다른 주소 공간을 가지므로, 서로 통신을 위해서 JSON, Ptotobuf, Thrift 같은 &lt;code&gt;IDL&lt;/code&gt;(Interface Definition Language)로 호출 규약을 정의한다.&lt;/li&gt;
+&lt;li&gt;rpcgen으로 &lt;code&gt;IDL&lt;/code&gt; 파일을 컴파일하여 클라이언트와 서버의 &lt;code&gt;Stub&lt;/code&gt; 코드를 생성한다.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Stub&lt;/code&gt;은 Source code(C++, Java, Python, Go&amp;hellip;)의 형태로 서버에서는 Stub을 사용하여 프로시저에 대한 &lt;code&gt;기능 구현&lt;/code&gt;이 필요하다.&lt;/li&gt;
+&lt;li&gt;각 클라이언트, 서버에서는 &lt;code&gt;Stub&lt;/code&gt; 코드를 같이 빌드한다.&lt;/li&gt;
+&lt;li&gt;클라이언트는 전달할 매개변수를 &lt;code&gt;Mashalling&lt;/code&gt;하고, 로컬 Stub 프로시저를 호출하여 서버에 메시지를 전송한다.&lt;/li&gt;
+&lt;li&gt;서버는 Stub을 통해 해당 프로시저가 호출되고, 매개변수를 &lt;code&gt;Unmarshalling&lt;/code&gt;하여 요청을 수행한 결과를 Mashalling하여 클라이언트에게 전송한다.&lt;/li&gt;
+&lt;li&gt;클라이언트는 해당 서버 프로시저에 대한 결과를 받으며, 마치 &lt;code&gt;로컬 메서드&lt;/code&gt;를 호출하는 것처럼 사용을 할 수 있게 된다.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/grpc/grpc/how-rpc-works.png&#34;
+	width=&#34;263&#34;
+	height=&#34;221&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/grpc/grpc/how-rpc-works_hu1646f65cbd4ca5e461afe8f60f3ef0b0_1418_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/grpc/grpc/how-rpc-works_hu1646f65cbd4ca5e461afe8f60f3ef0b0_1418_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;How RPC works&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;119&#34;
+		data-flex-basis=&#34;285px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;(&lt;a class=&#34;link&#34; href=&#34;https://learn.microsoft.com/en-us/windows/win32/rpc/how-rpc-works&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://learn.microsoft.com/en-us/windows/win32/rpc/how-rpc-works&lt;/a&gt;)&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;http2-multiplexing&#34;&gt;HTTP/2 Multiplexing&lt;/h2&gt;
+&lt;p&gt;위에서 언급한 듯이 gRPC에서 주요 특징 중 하나는 HTTP/2를 사용하는 것이다.&lt;br&gt;
+그중에 다음 글의 Load Balancing에서 중요한 &lt;code&gt;Multiplexing&lt;/code&gt;에 대해 조금 살펴보자.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;HTTP/1.0&lt;/strong&gt;에서 매 요청마다 연결하고 닫는 오버헤드가 있었고, &lt;strong&gt;HTTP/1.x&lt;/strong&gt;에서 TCP connection 재사용으로 네트워크 효율을 개선하고자  &lt;code&gt;persistent connection&lt;/code&gt;(aka &lt;strong&gt;long-lived&lt;/strong&gt;)이 도입되었다.&lt;br&gt;
+그러나, 한 번에 하나의 요청과 응답만을 처리할 수 있었고, 이는 &lt;code&gt;Head-of-Line blocking&lt;/code&gt;(앞선 요청이 오래걸릴 경우, 다음 요청들이 지연)을 야기했다.&lt;br&gt;
+&lt;strong&gt;HTTP/2&lt;/strong&gt;에서는 &lt;code&gt;Multiplexing&lt;/code&gt;으로 단일 TCP 연결(&lt;strong&gt;persistence connection&lt;/strong&gt;)에서 여러 요청과 응답을 순서와 상관없이 동시에 처리하여, HOL blocking 문제를 해결하였다.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/grpc/grpc/hol-blocking.jpeg&#34;
+	width=&#34;820&#34;
+	height=&#34;412&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/grpc/grpc/hol-blocking_hu48042d1284b42dcdfcd7a66d8ee04a92_40789_480x0_resize_q75_box.jpeg 480w, https://kimsehyoung.github.io/post/grpc/grpc/hol-blocking_hu48042d1284b42dcdfcd7a66d8ee04a92_40789_1024x0_resize_q75_box.jpeg 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;HOL-blocking&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;199&#34;
+		data-flex-basis=&#34;477px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;(&lt;a class=&#34;link&#34; href=&#34;https://www.imperva.com/learn/performance/http2/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://www.imperva.com/learn/performance/http2/&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;그럼, &lt;code&gt;HTTP/2&lt;/code&gt;에 대해 조금 더 알아보자.&lt;/p&gt;
+&lt;p&gt;HTTP/2에서 통신의 최소 단위는 Binary 형태의 &lt;code&gt;Frame&lt;/code&gt;으로, 하나의 HTTP &lt;code&gt;Message&lt;/code&gt;를 여러 개의 Frames으로 나누어
+보내는데, 연결된 &lt;code&gt;Connection&lt;/code&gt;에서 양방향 데이터 흐름인 &lt;code&gt;Stream&lt;/code&gt;으로 Frames을 전송하고 목적지에서 재조립하게 된다.&lt;br&gt;
+(☞ HTTP/1.x의 통신 단위는 Plain text 형태인 요청/응답 Message)&lt;/p&gt;
+&lt;p&gt;키 포인트인 &lt;code&gt;Multiplexing&lt;/code&gt;은 &lt;strong&gt;Single Connection&lt;/strong&gt;에서 동시에 여러 &lt;strong&gt;Streams&lt;/strong&gt;을 처리하는 것이다.&lt;br&gt;
+또한, 각 요청/응답 메시지에서 분할된 Frame들은 동일한 Stream에서 전송되며 스트림 식별자를 가지고 있어서,
+수신 측에서 프레임들이 동일한 메시지의 일부임을 알 수 있게 된다.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/grpc/grpc/http2.png&#34;
+	width=&#34;936&#34;
+	height=&#34;732&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/grpc/grpc/http2_hu011f28f2d5e7c6dd80285b4d5eca857c_34133_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/grpc/grpc/http2_hu011f28f2d5e7c6dd80285b4d5eca857c_34133_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;HTTP/2&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;127&#34;
+		data-flex-basis=&#34;306px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;(&lt;a class=&#34;link&#34; href=&#34;https://www.cncf.io/blog/2018/07/03/http-2-smarter-at-scale/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://www.cncf.io/blog/2018/07/03/http-2-smarter-at-scale/&lt;/a&gt;)&lt;/p&gt;
+&lt;h2 id=&#34;grpc-channel&#34;&gt;gRPC Channel&lt;/h2&gt;
+&lt;p&gt;gRPC에서 새로운 개념인 &lt;strong&gt;channel&lt;/strong&gt;이 있는데, HTTP/2와 함께 알아보자.&lt;br&gt;
+&lt;strong&gt;Channel&lt;/strong&gt;은 특정 Host와 Port의 gRPC 서버에 대한 &lt;strong&gt;Connection&lt;/strong&gt;을 추상화한 인터페이스이며,
+이를 통해 연결을 유지하고 관리하며, 효과적으로 활용할 수 있게 해준다.&lt;br&gt;
+또한, HTTP/2는 single connection에서 동시에 여러 메시지 스트림을 전송할 수 있게 해줬다면,
+&lt;strong&gt;channel&lt;/strong&gt;은 여기서 좀 더 확장되어, 동시에 &lt;strong&gt;multiple connections&lt;/strong&gt;에서 여러 메시지 스트림을 가능하게 한다.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Create a gRPC channel in Go
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;conn&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;grpc&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Dial&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;serverAddr&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;opts&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://kimsehyoung.github.io/post/grpc/grpc/channel.png&#34;
+	width=&#34;2317&#34;
+	height=&#34;1875&#34;
+	srcset=&#34;https://kimsehyoung.github.io/post/grpc/grpc/channel_huf141b0a4dd6755aa1cf0a0d0bc27eb0e_800078_480x0_resize_box_3.png 480w, https://kimsehyoung.github.io/post/grpc/grpc/channel_huf141b0a4dd6755aa1cf0a0d0bc27eb0e_800078_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;Channel&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;123&#34;
+		data-flex-basis=&#34;296px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;(&lt;a class=&#34;link&#34; href=&#34;https://grpc.io/blog/grpc-on-http2/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://grpc.io/blog/grpc-on-http2/&lt;/a&gt;)&lt;/p&gt;
+&lt;h2 id=&#34;grpc-gateway&#34;&gt;gRPC-Gateway&lt;/h2&gt;
 &lt;p&gt;&lt;code&gt;gRPC&lt;/code&gt;는 좋은 장점들이 있지만, 몇 가지 고려할 점이 있다.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;개발자들이 gRPC에 익숙지 않거나, 기존 서비스들이 REST 기반이라면 한 번에 서비스 전체에 gRPC를 적용하기 어려움&lt;/li&gt;
@@ -105,7 +419,14 @@ gRPC Gateway는 &lt;code&gt;REST&lt;/code&gt;를 &lt;code&gt;gRPC&lt;/code&gt;�
 &lt;ul&gt;
 &lt;li&gt;JSON/REST를 주로 사용했다면, 러닝 커브로 인한 도입 어려움&lt;/li&gt;
 &lt;li&gt;gRPC는 브라우저 직접적인 지원이 안 되기에, 추가적인 방법이 필요&lt;/li&gt;
-&lt;li&gt;TCP 연결을 유지하는 HTTP/2의 특성으로 인해, 로드 밸런싱의 어려움&lt;/li&gt;
+&lt;li&gt;TCP 연결을 유지하는 HTTP/2의 특성으로 인해, 까다로운 로드 밸런싱&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;references&#34;&gt;References&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&#34;link&#34; href=&#34;https://www.cncf.io/blog/2018/07/03/http-2-smarter-at-scal&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://www.cncf.io/blog/2018/07/03/http-2-smarter-at-scal&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class=&#34;link&#34; href=&#34;https://grpc.io/docs/languages/go/basics/&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+    &gt;https://grpc.io/docs/languages/go/basics/&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
         </item>
