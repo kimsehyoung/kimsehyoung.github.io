@@ -24,7 +24,7 @@
 &lt;p&gt;우선, &lt;strong&gt;3번 Service mesh&lt;/strong&gt;는 고려사항에서 제외하였다.&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;구축을 하더라도 우리 조직과 고객사에서 안정적으로 관리하기 위한 인력이 있는가?&lt;/li&gt;
-&lt;li&gt;우리가 서비스 운영을 하지 않고 있음&lt;/li&gt;
+&lt;li&gt;우리가 서비스 운영을 하지 않고 있음ㅠㅠ&lt;/li&gt;
 &lt;li&gt;결론적으로 사이드 문제가 클 것으로 보임&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;처음에는, &lt;strong&gt;1번 Client Side&lt;/strong&gt;로 마음이 기울었었다.&lt;/p&gt;
@@ -33,7 +33,7 @@
 &lt;li&gt;추가적인 리소스(pod)가 필요 없음&lt;/li&gt;
 &lt;li&gt;고객사에서는 K8s Headless Service로만 변경하면 끝&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;다시 한번 마음이 바뀌었는데, &lt;strong&gt;2번 L7 LB&lt;/strong&gt;가 최종 선택이었다..&lt;/p&gt;
+&lt;p&gt;다시 한번 마음이 바뀌었는데, &lt;strong&gt;2번 L7 LB&lt;/strong&gt;가 최종 선택이었다.&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;&lt;strong&gt;Client Side&lt;/strong&gt;는 앱(client &amp;amp; server), 인프라 모두 수정이 필요하기에, 다른 동료가 파악하기 어려움.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Client Side&lt;/strong&gt;는 server에서 적절한 &amp;lsquo;MaxConnectionAge&amp;rsquo;을 찾아서 설정해야 함.&lt;/li&gt;
